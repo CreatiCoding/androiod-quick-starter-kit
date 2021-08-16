@@ -8,6 +8,10 @@ import android.util.Log
 import android.webkit.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationManagerCompat
+import android.widget.Toast
+
+
+
 
 
 class AndroidJSInterface(applicationContext: Context) {
@@ -41,12 +45,14 @@ class AndroidJSInterface(applicationContext: Context) {
 
 // adb connect 127.0.0.1:62001
 class MainActivity : AppCompatActivity() {
+    private var backBtnTime: Long = 0
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val myWebView: WebView = findViewById(R.id.webview)
         myWebView.settings.javaScriptEnabled = true
+
         WebView.setWebContentsDebuggingEnabled(true)
         myWebView!!.webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
@@ -54,7 +60,24 @@ class MainActivity : AppCompatActivity() {
                 return true
             }
         }
-        myWebView.loadUrl("https://www.naver.com");
-        myWebView.addJavascriptInterface(AndroidJSInterface(applicationContext), "WebViewTest")
+        myWebView.settings.userAgentString += " JIJU-Android";
+
+        myWebView.settings.domStorageEnabled = true
+        myWebView.loadUrl("https://jiju.creative-service.xyz");
+
+        myWebView.addJavascriptInterface(AndroidJSInterface(applicationContext), "JIJU")
+    }
+    override fun onBackPressed() {
+        val myWebView: WebView = findViewById(R.id.webview)
+        val curTime = System.currentTimeMillis()
+        val gapTime = curTime - backBtnTime
+        if (myWebView.canGoBack()) {
+            myWebView.goBack()
+        } else if (0 <= gapTime && 2000 >= gapTime) {
+            super.onBackPressed()
+        } else {
+            backBtnTime = curTime
+            Toast.makeText(this, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
+        }
     }
 }
